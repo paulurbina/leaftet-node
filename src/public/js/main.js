@@ -1,21 +1,32 @@
-var map = L.map('map-template').setView([51.505, -0.09], 13);
+var map = L.map('map-template').setView([-12.1381268,-76.9863691], 16);
 
+//Socket io
 const socket = io.connect();
 
-L.tileLayer('http://toolserver.org/tiles/hikebike/{z}/{x}/{y}.png').addTo(map);
+const tile = L.tileLayer('http://toolserver.org/tiles/hikebike/{z}/{x}/{y}.png');
 
+//Geolocation
 map.locate({enableHighAccuracy: true});
-map.on('locationfound', (e) => {
+map.on('locationfound', e => {
     const coords = [e.latlng.lat, e.latlng.lng];
-    const marker = L.marker(coords);
-    marker.bindPopup('yo estoy aqui');
-    map.addLayer(marker);
-    socket.emit('userCoordinates', e.latlng);
+    const newMarker = L.marker(coords);
+    newMarker.bindPopup('Tu estas aqui!');
+    map.addLayer(newMarker);   
+    socket.emit('userCoordinates', e.latlng);   
 });
 
-// socket new User connected
-socket.on('userCoordinates', (coords) => {
-    const marker = L.marker(coords.lat, coords.lng).addTo(map);
-    marker.bindPopup('Hello here').openPopup();
-    map.addLayer(marker);
+// Socket new User connected
+socket.on('newUserCoordinates', (coords) => {
+    console.log(coords);
+    const userIcon = L.icon({
+        iconUrl: '/img/icon.png',
+        iconSize: [38,42]
+    })
+    const newUserMarker = L.marker([coords.lat, coords.lng], {
+        icon: userIcon
+    });
+    newUserMarker.bindPopup('New User');
+    map.addLayer(newUserMarker);
 });
+
+map.addLayer(tile);
